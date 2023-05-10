@@ -1,5 +1,6 @@
 import time
 import requests
+from sell_goods import sell_goods
 
 SHIP_ID = 'SUMMERRAINZ-2'
 
@@ -24,12 +25,18 @@ while True:
         wait = payload['data']['cooldown']['remainingSeconds']
         print(f"Mining successful, wait {payload['data']['cooldown']['remainingSeconds']} seconds")
     elif res.status_code == 409:
+        wait = payload['error']['data']['cooldown']['remainingSeconds']
         print(f"Mining in progrress. message: {payload['error']['message']}, wait: {payload['error']['data']['cooldown']['remainingSeconds']} seconds")
+        time.sleep(wait)
         continue
     elif res.status_code == 400:
         print(f"Done mining")
         print(payload)
-        raise Exception(f'Mining done. message: {payload["error"]["message"]}')
+        # raise Exception(f'Mining done. message: {payload["error"]["message"]}')
+
+        time.sleep(1)
+        sell_goods()
+        time.sleep(1)
     else:
         print(f'Unknown error. code = {res.status_code}')
         print(payload)
