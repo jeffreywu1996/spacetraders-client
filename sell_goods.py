@@ -1,5 +1,5 @@
-import sys
-sys.path.append('backend')
+# import sys
+# sys.path.append('backend')
 
 from backend.controllers import marketplace
 

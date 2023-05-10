@@ -1,7 +1,6 @@
 import os
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv()
 
-SHIP_ID = 'SUMMERRAINZ-2'
-API_TOKEN = os.getenv('API_TOKEN')
+SHIP_ID = os.getenv('SHIP_ID', 'SUMMERRAINZ-2')
+API_TOKEN = dotenv_values('.env').get('API_TOKEN')
