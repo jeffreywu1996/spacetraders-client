@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 @backoff.on_exception(backoff.expo,
     (requests.exceptions.RequestException, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError,
      requests.exceptions.Timeout),
-    max_tries=15,
+    max_tries=30,
     giveup=lambda e: e.response is not None and 400 <= e.response.status_code < 500)
 def get(path: str, data: dict = None, timeout: int = 20) -> tuple[dict, int]:
     """
@@ -38,7 +38,7 @@ def get(path: str, data: dict = None, timeout: int = 20) -> tuple[dict, int]:
 @backoff.on_exception(backoff.expo,
     (requests.exceptions.RequestException, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError,
      requests.exceptions.Timeout),
-    max_tries=15,
+    max_tries=30,
     giveup=lambda e: e.response is not None and 400 <= e.response.status_code < 500)
 def post(path: str, data: dict = None, timeout: int = 20) -> tuple[dict, int]:
     """
