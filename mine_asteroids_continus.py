@@ -42,6 +42,7 @@ def main():
 
         elif status_code == 409:
             #  Mining already in progress. Wait for cooldown and retry mining
+            logger.warning(payload)
             wait = payload['error']['data']['cooldown']['remainingSeconds']
             logger.warning(f"Mining is already in progress. message: {payload['error']['message']}, will wait: {wait} seconds until next try")
             time.sleep(wait)
