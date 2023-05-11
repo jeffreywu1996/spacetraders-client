@@ -2,71 +2,64 @@ import sys
 sys.path.append('backend')
 
 import time
-import requests
+import logging
+
 from sell_goods import sell_goods
-from backend.config.meta import SHIP_ID, API_TOKEN
+from backend.config.meta import SHIP_ID
+from backend import entry
 
-while True:
-    print(f'Start mining... {SHIP_ID}')
-    try:
-        res = requests.post(
-            f'https://api.spacetraders.io/v2/my/ships/{SHIP_ID}/extract',
-            headers={
-                'Authorization': f'Bearer {API_TOKEN}',
-                'Content-Type': 'application/json'
-            },
-            timeout=5,
-        )
-    except requests.exceptions.Timeout:
-        print('Timeout')
-        time.sleep(2)
-        continue
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(filename)s: %(message)s')
+logger = logging.getLogger(__name__)
 
-    payload = res.json()
-    if res.status_code == 201:
-        wait = payload['data']['cooldown']['remainingSeconds']
-        print(f"Mining successful, wait {payload['data']['cooldown']['remainingSeconds']} seconds")
-    elif res.status_code == 409:
-        wait = payload['error']['data']['cooldown']['remainingSeconds']
-        print(f"Mining in progrress. message: {payload['error']['message']}, wait: {payload['error']['data']['cooldown']['remainingSeconds']} seconds")
-        time.sleep(wait)
-        continue
-    elif res.status_code == 400:
-        print(f"Done mining")
-        print(payload)
-        # raise Exception(f'Mining done. message: {payload["error"]["message"]}')
 
-        time.sleep(1)
-        sell_goods()
-        time.sleep(1)
-        continue
-    else:
-        print(f'Unknown error. code = {res.status_code}')
-        print(payload)
-        raise Exception('Unknown error')
+def main():
+    mine_count = 0
 
-    if wait > 0:
-        print(f'Waiting for {wait} seconds...')
-        time.sleep(wait)
-        print('done')
+    logger.info(f'Start mining operations on {SHIP_ID} ...')
 
-        try:
-            print('Listing cargo...')
-            res = requests.get(
-                f'https://api.spacetraders.io/v2/my/ships/{SHIP_ID}',
-                headers={
-                    'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiU1VNTUVSUkFJTloiLCJpYXQiOjE2ODM2OTQzMDgsInN1YiI6ImFnZW50LXRva2VuIn0.OMq0ujeJI5n3jmEQd4-tP409vipu27l_edoe-hskWYk-HgfXP3uL2u5n530r3nDhqqJRXYaulyYdhDAPVvc-0DUHEXNUPKvJFewikvc9_oe98jM__V8TRWGWX6AoPEkQL2pWBx09PF5M1uqnVi15QIXq7ZzIQ9kavyURRBwDfoVhDQbV-WFGulwct_FCeVCUCTXXL9oU-lwzdSsjrXMdcRq-0g3e3oGr1O0VqvEE08uhs5e-kj9yF_LEnp1wbN-bHjbkFqpqK9H-xz-xBPpTKFmBoLHHh8pNC7mhmVWcOGnQAo-XIdWFktieiiZnrFNk50a-5B4ft_H1G7IoetXI8XZ3tHE0zYFxFN_Bh75lbomp9hQJ83aMJBUYWckQSKohdPXjLrZBpwzSiXO24iYIlXyaMJ_LaGcttFDNprjAxXA0zGDmoM1FzdeGs8Hv2mSpzCRMLGzXWdZdz0Wcev_TDmxjIEm89UYD_NCntUUGHIYEI1SRA7qsd2QIf1xOnYXC',
-                    'Content-Type': 'application/json'
-                },
-                timeout=5,
-            )
-        except requests.exceptions.Timeout:
-            print('Timeout')
-            time.sleep(2)
-            continue
+    # print current inventory
+    payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
+    cargo = payload['data']['cargo']
+    logger.info(f"current cargo capcity: {cargo['units']} / {cargo['capacity']}")
+    logger.info(f"inventory: {cargo['inventory']}")
 
-        payload = res.json()
-        if res.status_code == 200:
-            cargos = payload['data']['cargo']
-            units = cargos['units']
-            print(f'cargo units: {units}')
+    while True:
+        logger.info(f'Start mining... {SHIP_ID}, mine count: {mine_count}')
+        payload, status_code = entry.post(f'/my/ships/{SHIP_ID}/extract')
+
+        if status_code == 201:
+            # Successful mine. Wait for cooldown, check cargo and continue
+            wait = payload['data']['cooldown']['remainingSeconds']
+            logger.info(f"Started mining successful, waiting {payload['data']['cooldown']['remainingSeconds']} seconds until complete...")
+            time.sleep(wait)
+
+            payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
+            cargo = payload['data']['cargo']
+            logger.info(f"current cargo capcity: {cargo['units']} / {cargo['capacity']}")
+            logger.info(f"inventory: {cargo['inventory']}")
+            mine_count += 1
+
+        elif status_code == 409:
+            #  Mining already in progress. Wait for cooldown and retry mining
+            wait = payload['error']['data']['cooldown']['remainingSeconds']
+            logger.warning(f"Mining is already in progress. message: {payload['error']['message']}, will wait: {wait} seconds until next try")
+            time.sleep(wait)
+
+        elif status_code == 400:
+            # Max cargo reached. Sell goods and continue
+            logger.warning(f"Max cargo reached, cannot mine anymore")
+            logger.warning(payload)
+
+            time.sleep(1)
+            sell_goods()
+            time.sleep(1)
+            logger.info("Goods sold, continue mining...")
+
+        else:
+            logger.error(f'Unknown error. code = {status_code}')
+            logger.error(payload)
+            time.sleep(60)
+
+
+if __name__ == '__main__':
+    main()

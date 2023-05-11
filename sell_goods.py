@@ -1,18 +1,20 @@
 # import sys
 # sys.path.append('backend')
+import logging
 
 from backend.controllers import marketplace
 
+logger = logging.getLogger(__name__)
+
 def sell_goods():
-    # Listing ship cargo
-    print('Listing cargo...')
+    logger.info('Selling all goods...')
     cargos = marketplace.list_cargo()
-    print(f'cargo: {cargos}')
+    logger.info(f'Current cargo: {cargos}')
 
-
-    print('Docking ship...')
+    logger.info('Docking ship...')
     assert marketplace.docking_ship(), 'Ship is not docked'
 
-    print('Selling goods...')
+    logger.info('Selling goods...')
     reciept = marketplace.sell_all_goods(cargos)
-    print(reciept)
+    logger.info(reciept)
+    logger.info('Selling done.')

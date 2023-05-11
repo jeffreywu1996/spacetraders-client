@@ -1,44 +1,25 @@
 import json
+import logging
 import requests
 
 from config.meta import SHIP_ID, API_TOKEN
+import entry
+
+logger = logging.getLogger(__name__)
+
 
 def list_cargo() -> dict:
     """
     List out ship cargo
     """
-    res = requests.get(
-        f'https://api.spacetraders.io/v2/my/ships/{SHIP_ID}',
-        headers={
-            'Authorization': f'Bearer {API_TOKEN}',
-            'Content-Type': 'application/json'
-        },
-    )
-    payload = res.json()
-    if res.status_code != 200:
-        print(f'Unknown error. code = {res.status_code}')
-        print(payload)
-        raise Exception('Unknown error')
-
-    cargos = payload['data']['cargo']
-    return cargos
+    payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
+    return payload['data']['cargo']
 
 
 def docking_ship():
-    res = requests.post(
-        f'https://api.spacetraders.io/v2/my/ships/{SHIP_ID}/dock',
-        headers={
-            'Authorization': f'Bearer {API_TOKEN}',
-            'Content-Type': 'application/json'
-        },
-    )
-    payload = res.json()
-    if res.status_code != 200:
-        print(f'Unknown error. code = {res.status_code}')
-        print(payload)
-        raise Exception('Unknown error')
-
+    payload, status_code = entry.post(f'/my/ships/{SHIP_ID}/dock')
     return payload['data']['nav']['status'] == 'DOCKED'
+
 
 
 def sell_all_goods(cargos: dict):
@@ -49,22 +30,18 @@ def sell_all_goods(cargos: dict):
 
 
     for i in cargos['inventory']:
-        data = {
+        data={
             'symbol': i['symbol'],
             'units': i['units']
         }
 
-        res = requests.post(
-            f'https://api.spacetraders.io/v2/my/ships/{SHIP_ID}/sell',
-            headers={
-                'Authorization': f'Bearer {API_TOKEN}',
-                'Content-Type': 'application/json'
-            },
-            data=json.dumps(data)
+        payload, status_code = entry.post(
+            f'/my/ships/{SHIP_ID}/sell',
+            data=data
         )
 
-        print(f'Sold goods, symbol: {data["symbol"]}, units: {data["units"]}, status_code: {res.status_code}')
-        print(data)
+        logger.info(f'Sold goods, symbol: {data["symbol"]}, units: {data["units"]}, status_code: {status_code}')
+
         reciept['goods_sold'].append({
             'symbol': data['symbol'],
             'units': data['units']
