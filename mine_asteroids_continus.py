@@ -21,7 +21,8 @@ def main():
     payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
     cargo = payload['data']['cargo']
     logger.info(f"current cargo capcity: {cargo['units']} / {cargo['capacity']}")
-    logger.info(f"inventory: {cargo['inventory']}")
+    inventory = [{'symbol': c['symbol'], 'units': c['units']} for c in cargo['inventory']]
+    logger.info(f"inventory: {inventory}")
 
     while True:
         logger.info(f'Start mining... {SHIP_ID}, mine count: {mine_count}')
@@ -35,8 +36,8 @@ def main():
 
             payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
             cargo = payload['data']['cargo']
-            logger.info(f"current cargo capcity: {cargo['units']} / {cargo['capacity']}")
-            logger.info(f"inventory: {cargo['inventory']}")
+            inventory = [{'symbol': c['symbol'], 'units': c['units']} for c in cargo['inventory']]
+            logger.info(f"inventory: {inventory}")
             mine_count += 1
 
         elif status_code == 409:

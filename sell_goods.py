@@ -1,5 +1,5 @@
-# import sys
-# sys.path.append('backend')
+import sys
+sys.path.append('backend')
 import logging
 
 from backend.controllers import marketplace
@@ -18,3 +18,8 @@ def sell_goods():
     reciept = marketplace.sell_all_goods(cargos)
     logger.info(reciept)
     logger.info('Selling done.')
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(filename)s: %(message)s')
+    sell_goods()

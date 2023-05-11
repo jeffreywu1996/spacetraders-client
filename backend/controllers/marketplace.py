@@ -1,8 +1,6 @@
-import json
 import logging
-import requests
 
-from config.meta import SHIP_ID, API_TOKEN
+from config.meta import SHIP_ID
 import entry
 
 logger = logging.getLogger(__name__)
@@ -40,11 +38,15 @@ def sell_all_goods(cargos: dict):
             data=data
         )
 
-        logger.info(f'Sold goods, symbol: {data["symbol"]}, units: {data["units"]}, status_code: {status_code}')
+        if status_code in [200, 201]:
+            trans = payload['data']['transaction']
+            logger.info(f'Sold goods, symbol: {data["symbol"]}, units: {data["units"]}, price per unit: {trans["pricePerUnit"]}, profit: {trans["totalPrice"]}, status_code: {status_code}')
+            reciept['goods_sold'].append({
+                'symbol': data['symbol'],
+                'units': data['units']
+            })
 
-        reciept['goods_sold'].append({
-            'symbol': data['symbol'],
-            'units': data['units']
-        })
+        else:
+            logger.info(f'Cannot sel goods, symbol: {data["symbol"]}, units: {data["units"]}, status_code: {status_code}')
 
     return reciept
