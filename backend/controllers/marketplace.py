@@ -1,9 +1,31 @@
+import requests
 import logging
 
 from config.meta import SHIP_ID
 import entry
 
 logger = logging.getLogger(__name__)
+
+def get_prices(system: str, waypoint: str, item: str):
+    try:
+        payload, status_code = entry.get(f'/systems/{system}/waypoints/{waypoint}/market')
+        # logger.info(f'payload: {payload}, status_code: {status_code}')
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+            logger.error(e.response.json())
+            return e.response.json(), 404
+        raise e
+
+    if 'tradeGoods' not in payload['data']:
+        return payload, 404
+
+    trade_goods = payload['data']['tradeGoods']
+
+    for good in trade_goods:
+        if good['symbol'] == item:
+            return good, status_code
+
+    return payload, 404
 
 
 def list_cargo() -> dict:
@@ -17,6 +39,20 @@ def list_cargo() -> dict:
 def docking_ship():
     payload, status_code = entry.post(f'/my/ships/{SHIP_ID}/dock')
     return payload['data']['nav']['status'] == 'DOCKED'
+
+
+def purchase(ship_id, symbol, units):
+    logger.info(f'Purchasing goods, ship_id: {ship_id}, symbol: {symbol}, units: {units}...')
+    payload, status_code = entry.post(
+        f'/my/ships/{ship_id}/purchase',
+        data={
+            'symbol': symbol,
+            'units': units
+        }
+    )
+    logger.info(f'payload: {payload}, status_code: {status_code}')
+
+    return payload, status_code
 
 
 

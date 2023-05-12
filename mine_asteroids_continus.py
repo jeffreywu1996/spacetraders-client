@@ -7,15 +7,20 @@ import logging
 from sell_goods import sell_goods
 from backend.config.meta import SHIP_ID
 from backend import entry
+from backend.controllers import transport
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(filename)s: %(message)s')
 logger = logging.getLogger(__name__)
+
+MINE_LOCATION = 'X1-DF55-17335A'
 
 
 def main():
     mine_count = 0
 
     logger.info(f'Start mining operations on {SHIP_ID} ...')
+    if transport.get_waypoint_symbol(SHIP_ID) != MINE_LOCATION:
+        transport.fly_to(SHIP_ID, MINE_LOCATION)
 
     # print current inventory
     payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
@@ -37,6 +42,7 @@ def main():
             payload, status_code = entry.get(f'/my/ships/{SHIP_ID}')
             cargo = payload['data']['cargo']
             inventory = [{'symbol': c['symbol'], 'units': c['units']} for c in cargo['inventory']]
+            logger.info(f"current cargo capcity: {cargo['units']} / {cargo['capacity']}")
             logger.info(f"inventory: {inventory}")
             mine_count += 1
 
