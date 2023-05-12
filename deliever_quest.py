@@ -53,8 +53,9 @@ def deliever_goods():
         curr_fuel = transport.get_fuel(SHIP)
         logger.info(f"Current fuel: {curr_fuel}")
 
-        recipt, status_code = transport.refuel(SHIP)
-        logger.info(f"refuel cost: {recipt['data']['fuel']}")
+        if curr_fuel < 100:
+            recipt, status_code = transport.refuel(SHIP)
+            logger.info(f"refuel cost: {recipt['data']['fuel']}")
 
         marketplace.purchase(SHIP, ORE_TO_MINE, MINE_UNITS)
         transport.fly_to(SHIP, QUEST_LOCATION)
