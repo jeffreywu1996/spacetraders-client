@@ -20,6 +20,10 @@ MINE_UNITS = 60
 
 BUY_THRESHOLD = 30
 
+BUY_THRESHOLD_25 = 25
+BUY_THRESHOLD_20 = 20
+BUY_THRESHOLD_15 = 15
+
 
 deliver_count = 0
 
@@ -78,6 +82,20 @@ def deliever_goods():
         logger.info(f"Accepted: {_contract['accepted']}, unitsRequired: {units_required}, unitsFulfilled: {units_fulfilled}, deadline: {deadline}")
 
         deliver_count += 1
+
+        # Add bucket style wait for next delivery
+        payload, _ = marketplace.get_prices(SYSTEM, ASTEROID_FIELD, ORE_TO_MINE)
+        curr_price = payload['purchasePrice']
+
+        if curr_price >= BUY_THRESHOLD_25:
+            logger.info('Adding synthetic 10 minute wait...')
+            time.sleep(600)
+        elif curr_price >= BUY_THRESHOLD_20:
+            logger.info('Adding synthetic 5 minute wait...')
+            time.sleep(300)
+        elif curr_price >= BUY_THRESHOLD_15:
+            logger.info('Adding synthetic 2 minute wait...')
+            time.sleep(120)
 
 
 
