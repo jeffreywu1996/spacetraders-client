@@ -22,7 +22,7 @@ BUY_THRESHOLD = 30
 
 BUY_THRESHOLD_25 = 25
 BUY_THRESHOLD_20 = 20
-BUY_THRESHOLD_15 = 15
+BUY_THRESHOLD_15 = 17
 
 
 deliver_count = 0
@@ -54,17 +54,17 @@ def deliever_goods():
 
         transport.fly_to(SHIP, ASTEROID_FIELD)
         transport.dock(SHIP)
-        curr_fuel = transport.get_fuel(SHIP)
+        curr_fuel, _ = transport.get_fuel(SHIP)
         logger.info(f"Current fuel: {curr_fuel}")
 
-        if curr_fuel < 100:
+        if curr_fuel['current'] < 100:
             recipt, status_code = transport.refuel(SHIP)
             logger.info(f"refuel cost: {recipt['data']['fuel']}")
 
         marketplace.purchase(SHIP, ORE_TO_MINE, MINE_UNITS)
         transport.fly_to(SHIP, QUEST_LOCATION)
         transport.dock(SHIP)
-        curr_fuel = transport.get_fuel(SHIP)
+        curr_fuel, _ = transport.get_fuel(SHIP)
         logger.info(f"Current fuel: {curr_fuel}")
 
         payload, status_code = contract.deliver(CONTRACT_ID, SHIP, ORE_TO_MINE, MINE_UNITS)
@@ -94,8 +94,10 @@ def deliever_goods():
             logger.info('Adding synthetic 5 minute wait...')
             time.sleep(300)
         elif curr_price >= BUY_THRESHOLD_15:
-            logger.info('Adding synthetic 2 minute wait...')
-            time.sleep(120)
+            # logger.info('Adding synthetic 2 minute wait...')
+            logger.info('continue')
+            # time.sleep(120)
+
 
 
 
