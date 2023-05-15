@@ -8,17 +8,25 @@ from sell_goods import sell_goods
 from backend.config.meta import SHIP_ID
 from backend import entry
 from backend.controllers import transport
+from backend.controllers import systems
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(filename)s: %(message)s')
 logger = logging.getLogger(__name__)
 
-MINE_LOCATION = 'X1-DF55-17335A'
+# MINE_LOCATION = 'X1-DF55-17335A'
 
 
 def main():
     mine_count = 0
 
     logger.info(f'Start mining operations on {SHIP_ID} ...')
+    # logger.info('Find mine location...')
+    # payload, _ = systems.list_systems(type='ASTEROID_FIELD')
+    # asteroid_field = payload['waypoints'][0]['symbol']
+    # logger.info(f'Found asteroid field: {asteroid_field}')
+    # MINE_LOCATION = asteroid_field
+    MINE_LOCATION = 'X1-ZA40-99095A'
+
     if transport.get_waypoint_symbol(SHIP_ID) != MINE_LOCATION:
         transport.fly_to(SHIP_ID, MINE_LOCATION)
 

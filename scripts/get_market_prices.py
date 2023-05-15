@@ -38,18 +38,20 @@ PLANETS = [
 
 
 def main():
-    for p in PLANETS:
-        logger.info('\n----------------------------------------\n')
-        logger.info(f'Fetching prices for planet: {p}')
-        payload, status_code = marketplace.get_prices(SYSTEM, p, ORE_TO_MINE)
-        if status_code == 404:
-            logger.error(f'No market data for planet: {p}')
-            continue
+    # for p in PLANETS:
+    #     logger.info('\n----------------------------------------\n')
+    #     logger.info(f'Fetching prices for planet: {p}')
+    #     payload, status_code = marketplace.get_prices(SYSTEM, p, ORE_TO_MINE)
+    #     if status_code == 404:
+    #         logger.error(f'No market data for planet: {p}')
+    #         continue
 
-        for p in payload:
-            logger.info(f'{p}: {payload[p]}')
+    #     for p in payload:
+    #         logger.info(f'{p}: {payload[p]}')
 
-
+    payload, _ = marketplace.get_prices(SYSTEM, ASTEROID_FIELD, ORE_TO_MINE)
+    curr_price = payload['purchasePrice']
+    logger.info(curr_price)
 
 
 

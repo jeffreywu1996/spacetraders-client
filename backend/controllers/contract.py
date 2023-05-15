@@ -27,3 +27,7 @@ def deliver(contract_id, ship_id, trade_symbol, units):
 def get(contract_id):
     payload, status_code = entry.get(f'/my/contracts/{contract_id}')
     return payload, status_code
+
+def list():
+    payload, status_code = entry.get(f'/my/contracts')
+    return payload, status_code
